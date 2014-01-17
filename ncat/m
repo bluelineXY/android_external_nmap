@@ -1,0 +1,106 @@
+In file included from external/nmap/ncat/../nsock/include/nsock.h:66:0,
+                 from external/nmap/ncat/ncat.h:135,
+                 from external/nmap/ncat/ncat_exec_win.c:124:
+external/nmap/ncat/../nsock/include/nsock_config.h:87:0: warning: "HAVE_EPOLL" redefined [enabled by default]
+In file included from <command-line>:0:0:
+./build/core/combo/include/arch/linux-arm/AndroidConfig.h:156:0: note: this is the location of the previous definition
+external/nmap/ncat/ncat_exec_win.c:129:5: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:131:5: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:132:5: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:133:5: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:134:5: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:138:1: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:142:1: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:142:36: warning: initialization makes integer from pointer without a cast [enabled by default]
+external/nmap/ncat/ncat_exec_win.c:145:1: error: unknown type name 'DWORD'
+external/nmap/ncat/ncat_exec_win.c:145:21: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'subprocess_thread_func'
+external/nmap/ncat/ncat_exec_win.c:147:32: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:148:34: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:161:1: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:161:38: warning: initialization makes integer from pointer without a cast [enabled by default]
+external/nmap/ncat/ncat_exec_win.c: In function 'netrun':
+external/nmap/ncat/ncat_exec_win.c:168:5: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:182:5: warning: implicit declaration of function 'CreateThread' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:182:36: error: 'subprocess_thread_func' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:182:36: note: each undeclared identifier is reported only once for each function it appears in
+external/nmap/ncat/ncat_exec_win.c:183:16: warning: comparison between pointer and integer [enabled by default]
+external/nmap/ncat/ncat_exec_win.c:185:13: warning: implicit declaration of function 'GetLastError' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:189:5: warning: implicit declaration of function 'CloseHandle' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c: In function 'netexec':
+external/nmap/ncat/ncat_exec_win.c:199:5: error: unknown type name 'DWORD'
+external/nmap/ncat/ncat_exec_win.c:206:9: warning: implicit declaration of function 'ExitProcess' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:210:5: warning: implicit declaration of function 'subprocess_thread_func' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c: In function 'set_pseudo_sigchld_handler':
+external/nmap/ncat/ncat_exec_win.c:217:5: error: unknown type name 'DWORD'
+external/nmap/ncat/ncat_exec_win.c:219:30: warning: comparison between pointer and integer [enabled by default]
+external/nmap/ncat/ncat_exec_win.c:220:9: warning: implicit declaration of function 'CreateMutex' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:220:50: error: 'FALSE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:221:9: warning: comparison between pointer and integer [enabled by default]
+external/nmap/ncat/ncat_exec_win.c:223:5: warning: implicit declaration of function 'WaitForSingleObject' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:223:52: error: 'INFINITE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:224:5: error: 'WAIT_OBJECT_0' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:226:5: warning: implicit declaration of function 'ReleaseMutex' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c: In function 'run_command_redirected':
+external/nmap/ncat/ncat_exec_win.c:238:5: error: unknown type name 'SECURITY_ATTRIBUTES'
+external/nmap/ncat/ncat_exec_win.c:239:5: error: unknown type name 'STARTUPINFO'
+external/nmap/ncat/ncat_exec_win.c:240:5: error: unknown type name 'PROCESS_INFORMATION'
+external/nmap/ncat/ncat_exec_win.c:243:7: error: request for member 'nLength' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:244:7: error: request for member 'bInheritHandle' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:244:25: error: 'TRUE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:245:7: error: request for member 'lpSecurityDescriptor' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:248:5: warning: implicit declaration of function 'CreatePipe' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:256:9: warning: implicit declaration of function 'GetCurrentProcessId' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:262:5: warning: implicit declaration of function 'CreateNamedPipe' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:263:9: error: 'PIPE_ACCESS_INBOUND' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:263:31: error: 'FILE_FLAG_OVERLAPPED' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:264:9: error: 'PIPE_TYPE_BYTE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:272:5: warning: implicit declaration of function 'CreateFile' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:273:9: error: 'GENERIC_WRITE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:273:32: error: 'OPEN_EXISTING' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:274:9: error: 'FILE_ATTRIBUTE_NORMAL' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:284:5: warning: implicit declaration of function 'SetHandleInformation' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:284:44: error: 'HANDLE_FLAG_INHERIT' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:288:7: error: request for member 'cb' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:289:7: error: request for member 'hStdInput' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:290:7: error: request for member 'hStdOutput' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:291:7: error: request for member 'hStdError' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:291:5: warning: implicit declaration of function 'GetStdHandle' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:291:33: error: 'STD_ERROR_HANDLE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:292:7: error: request for member 'dwFlags' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:292:19: error: 'STARTF_USESTDHANDLES' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:296:5: warning: implicit declaration of function 'CreateProcess' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:308:19: error: request for member 'hThread' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:310:20: error: request for member 'hProcess' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c:312:14: error: request for member 'dwProcessId' in something not a structure or union
+external/nmap/ncat/ncat_exec_win.c: In function 'subprocess_info_close':
+external/nmap/ncat/ncat_exec_win.c:334:5: warning: implicit declaration of function 'closesocket' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c: In function 'start_subprocess':
+external/nmap/ncat/ncat_exec_win.c:400:5: warning: implicit declaration of function 'register_subprocess' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:403:9: warning: implicit declaration of function 'TerminateProcess' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c: At top level:
+external/nmap/ncat/ncat_exec_win.c:425:1: error: unknown type name 'DWORD'
+external/nmap/ncat/ncat_exec_win.c:425:21: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'subprocess_thread_func'
+external/nmap/ncat/ncat_exec_win.c: In function 'get_subprocess_slot':
+external/nmap/ncat/ncat_exec_win.c:552:5: error: unknown type name 'DWORD'
+external/nmap/ncat/ncat_exec_win.c:554:50: error: 'INFINITE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:555:5: error: 'WAIT_OBJECT_0' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:560:9: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:562:18: warning: comparison between pointer and integer [enabled by default]
+external/nmap/ncat/ncat_exec_win.c:570:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+external/nmap/ncat/ncat_exec_win.c: At top level:
+external/nmap/ncat/ncat_exec_win.c:584:32: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:628:34: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c: In function 'terminate_subprocesses':
+external/nmap/ncat/ncat_exec_win.c:657:5: error: unknown type name 'DWORD'
+external/nmap/ncat/ncat_exec_win.c:662:50: error: 'INFINITE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:663:5: error: 'WAIT_OBJECT_0' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:668:9: error: unknown type name 'HANDLE'
+external/nmap/ncat/ncat_exec_win.c:669:9: error: unknown type name 'DWORD'
+external/nmap/ncat/ncat_exec_win.c:671:18: warning: comparison between pointer and integer [enabled by default]
+external/nmap/ncat/ncat_exec_win.c:673:9: warning: implicit declaration of function 'GetExitCodeProcess' [-Wimplicit-function-declaration]
+external/nmap/ncat/ncat_exec_win.c:674:20: error: 'STILL_ACTIVE' undeclared (first use in this function)
+external/nmap/ncat/ncat_exec_win.c:679:25: warning: assignment makes integer from pointer without a cast [enabled by default]
+external/nmap/ncat/ncat_exec_win.c: In function 'run_command_redirected':
+external/nmap/ncat/ncat_exec_win.c:313:1: error: control reaches end of non-void function [-Werror=return-type]
+cc1: some warnings being treated as errors
+make: *** [/mnt/build/cm11.anzu/out/target/product/anzu/obj/EXECUTABLES/ncat_intermediates/ncat_exec_win.o] Fehler 1
