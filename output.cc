@@ -1669,24 +1669,25 @@ const char *FingerPrintResultsIPv4::merge_fpr(const Target *currenths,
    characters. */
 static std::string run_length_encode(const std::string &s) {
   // std::ostringstream result;
+    std::string result;
   const char *p, *q;
   unsigned int reps;
 
-  /*p = s.c_str();
+  p = s.c_str();
   while (*p != '\0' && *(p + 1) != '\0') {
     for (q = p + 2; *q == *p && *(q + 1) == *(p + 1); q += 2)
       ;
     reps = (q - p) / 2;
     if (reps < 3)
-      result << std::string(p, q);
+      result += std::string(p, q);
     else
-      result << std::string(p, 2) << "{" << reps << "}";
+      result += std::string(p, 2) + "{" + reps + "}";
     p = q;
   }
   if (*p != '\0')
-    result << std::string(p);
-*/
-  return NULL; // result.str();
+    result += std::string(p);
+
+  return result; // result.str();
 }
 
 static std::string wrap(const std::string &s) {
@@ -1733,11 +1734,12 @@ static void scrub_packet(PacketElement *pe, unsigned char fill) {
 
 static std::string get_scrubbed_buffer(const FPResponse *resp) {
   /// std::ostringstream result;
+    std::string result;
   PacketElement *scrub1, *scrub2;
   u8 *buf1, *buf2;
   int len1, len2;
   unsigned int i;
-/*
+
   scrub1 = PacketParser::split(resp->buf, resp->len);
   assert(scrub1 != NULL);
   scrub_packet(scrub1, 0x00);
@@ -1752,14 +1754,14 @@ static std::string get_scrubbed_buffer(const FPResponse *resp) {
   assert(resp->len == (unsigned int) len1);
   assert(resp->len == (unsigned int) len2);
 
-  result.fill('0');
-  result << std::hex;
+  result= '0';
+  result += std::hex;
   for (i = 0; i < resp->len; i++) {
     if (resp->buf[i] == buf1[i] && resp->buf[i] == buf2[i]) {
       result.width(2);
-      result << (unsigned int) resp->buf[i];
+      result += (unsigned int) resp->buf[i];
     } else {
-      result << "XX";
+      result += "XX";
     }
   }
 
@@ -1767,8 +1769,8 @@ static std::string get_scrubbed_buffer(const FPResponse *resp) {
   free(buf2);
   PacketParser::freePacketChain(scrub1);
   PacketParser::freePacketChain(scrub2);
-*/
-  return NULL; // result.str();
+
+  return result; // result.str();
 }
 
 const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
@@ -1776,16 +1778,17 @@ const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
   static char str[10240];
   const FingerPrintResultsIPv6 *FPR;
   // std::ostringstream result;
+  std::string result;
   std::string output;
   unsigned int i;
 
   /* Write the SCAN line. */
-/*
+
   WriteSInfo(str, sizeof(str), isGoodFP, "6", currenths->TargetSockAddr(),
     currenths->distance, currenths->distance_calculation_method,
     currenths->MACAddress(), this->osscan_opentcpport,
     this->osscan_closedtcpport, this->osscan_closedudpport);
-  result << str << "\n";
+  result = str + "\n";
 
   FPR = (FingerPrintResultsIPv6 *) currenths->FPR;
   assert(FPR->begin_time.tv_sec != 0);
@@ -1799,21 +1802,21 @@ const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
     scrubbed = get_scrubbed_buffer(resp);
     if (wrapit)
       scrubbed = run_length_encode(scrubbed);
-    result << resp->probe_id << "(P=" << scrubbed;
+    result += resp->probe_id + "(P=" + scrubbed;
     assert(resp->senttime.tv_sec != 0);
-    result << "%ST=" << TIMEVAL_FSEC_SUBTRACT(resp->senttime, FPR->begin_time);
+    result += "%ST=" + TIMEVAL_FSEC_SUBTRACT(resp->senttime, FPR->begin_time);
     assert(resp->rcvdtime.tv_sec != 0);
-    result << "%RT=" << TIMEVAL_FSEC_SUBTRACT(resp->rcvdtime, FPR->begin_time);
-    result << ")\n";
+    result += "%RT=" + TIMEVAL_FSEC_SUBTRACT(resp->rcvdtime, FPR->begin_time);
+    result += ")\n";
   }
 
-  result << "EXTRA(";
-  result << "FL=";
-  result.fill('0');
-  result << std::hex;
-  result.width(5);
-  result << FPR->flow_label;
-  result << ")\n";
+  result += "EXTRA(";
+  result += "FL=";
+  // result.fill('0');
+  result += std::hex;
+  // result.width(5);
+  result += FPR->flow_label;
+  result += ")\n";
 
   output = result.str();
   if (wrapit) {
@@ -1821,8 +1824,8 @@ const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
   }
 
   Strncpy(str, output.c_str(), sizeof(str));
-*/
-  return NULL; // str;
+
+  return result; // str;
 }
 
 static void write_merged_fpr(const FingerPrintResults *FPR,
