@@ -148,23 +148,23 @@ NewTargets *NewTargets::new_targets;
    the number after the slash, or -1 if there was no slash. In case of error
    return NULL; *bits is then undefined. */
 static char *split_netmask(const char *expr, int *bits) {
-  const char *slash;
+    const char *slash;
 
-  slash = strrchr(expr, '/');
-  if (slash != NULL) {
-    long l;
-    char *tail;
+    slash = strrchr(expr, '/');
+    if (slash != NULL) {
+        long l;
+        char *tail;
 
-    l = parse_long(slash + 1, &tail);
-    if (tail == slash + 1 || *tail != '\0' || l < 0 || l > INT_MAX)
-      return NULL;
-    *bits = (int) l;
-  } else {
-    slash = expr + strlen(expr);
-    *bits = -1;
-  }
+        l = parse_long(slash + 1, &tail);
+        if (tail == slash + 1 || *tail != '\0' || l < 0 || l > INT_MAX)
+            return NULL;
+        *bits = (int) l;
+    } else {
+        slash = expr + strlen(expr);
+        *bits = -1;
+    }
 
-  return mkstr(expr, slash);
+    return mkstr(expr, slash);
 }
 
 /* Parse an IPv4 address with optional ranges and wildcards into bit vectors.
@@ -172,616 +172,628 @@ static char *split_netmask(const char *expr, int *bits) {
    where '#' stands for an integer between 0 and 255. Return 0 on success, -1 on
    error. */
 static int parse_ipv4_ranges(octet_bitvector octets[4], const char *spec) {
-  const char *p;
-  int octet_index, i;
+    const char *p;
+    int octet_index, i;
 
-  p = spec;
-  octet_index = 0;
-  while (*p != '\0' && octet_index < 4) {
-    if (*p == '*') {
-      for (i = 0; i < 256; i++)
-        BIT_SET(octets[octet_index], i);
-      p++;
-    } else {
-      for (;;) {
-        long start, end;
-        char *tail;
-
-        errno = 0;
-        start = parse_long(p, &tail);
-        /* Is this a range open on the left? */
-        if (tail == p) {
-          if (*p == '-')
-            start = 0;
-          else
-            return -1;
-        }
-        if (errno != 0 || start < 0 || start > 255)
-          return -1;
-        p = tail;
-
-        /* Look for a range. */
-        if (*p == '-') {
-          p++;
-          errno = 0;
-          end = parse_long(p, &tail);
-          /* Is this range open on the right? */
-          if (tail == p)
-            end = 255;
-          if (errno != 0 || end < 0 || end > 255 || end < start)
-            return -1;
-          p = tail;
+    p = spec;
+    octet_index = 0;
+    while (*p != '\0' && octet_index < 4) {
+        if (*p == '*') {
+            for (i = 0; i < 256; i++)
+                BIT_SET(octets[octet_index], i);
+            p++;
         } else {
-          end = start;
+            for (;;) {
+                long start, end;
+                char *tail;
+
+                errno = 0;
+                start = parse_long(p, &tail);
+                /* Is this a range open on the left? */
+                if (tail == p) {
+                    if (*p == '-')
+                        start = 0;
+                    else
+                        return -1;
+                }
+                if (errno != 0 || start < 0 || start > 255)
+                    return -1;
+                p = tail;
+
+                /* Look for a range. */
+                if (*p == '-') {
+                    p++;
+                    errno = 0;
+                    end = parse_long(p, &tail);
+                    /* Is this range open on the right? */
+                    if (tail == p)
+                        end = 255;
+                    if (errno != 0 || end < 0 || end > 255 || end < start)
+                        return -1;
+                    p = tail;
+                } else {
+                    end = start;
+                }
+
+                /* Fill in the range in the bit vector. */
+                for (i = start; i <= end; i++)
+                    BIT_SET(octets[octet_index], i);
+
+                if (*p != ',')
+                    break;
+                p++;
+            }
         }
-
-        /* Fill in the range in the bit vector. */
-        for (i = start; i <= end; i++)
-          BIT_SET(octets[octet_index], i);
-
-        if (*p != ',')
-          break;
-        p++;
-      }
+        octet_index++;
+        if (octet_index < 4) {
+            if (*p != '.')
+                return -1;
+            p++;
+        }
     }
-    octet_index++;
-    if (octet_index < 4) {
-      if (*p != '.')
+    if (*p != '\0' || octet_index < 4)
         return -1;
-      p++;
-    }
-  }
-  if (*p != '\0' || octet_index < 4)
-    return -1;
 
-  return 0;
+    return 0;
 }
 
 static NetBlock *parse_expr_without_netmask(const char *hostexp, int af) {
-  struct sockaddr_storage ss;
-  size_t sslen;
+    struct sockaddr_storage ss;
+    size_t sslen;
 
-  if (af == AF_INET) {
-    NetBlockIPv4Ranges *netblock_ranges;
+    if (af == AF_INET) {
+        NetBlockIPv4Ranges *netblock_ranges;
 
-    /* Check if this is an IPv4 address, with optional ranges and wildcards. */
-    netblock_ranges = new NetBlockIPv4Ranges();
-    if (parse_ipv4_ranges(netblock_ranges->octets, hostexp) == 0)
-      return netblock_ranges;
-    delete netblock_ranges;
-  }
+        /* Check if this is an IPv4 address, with optional ranges and wildcards. */
+        netblock_ranges = new NetBlockIPv4Ranges();
+        if (parse_ipv4_ranges(netblock_ranges->octets, hostexp) == 0)
+            return netblock_ranges;
+        delete netblock_ranges;
+    }
 
-  sslen = sizeof(ss);
-  if (resolve_numeric(hostexp, 0, &ss, &sslen, AF_INET6) == 0) {
-    NetBlockIPv6Netmask *netblock_ipv6;
+    sslen = sizeof (ss);
+    if (resolve_numeric(hostexp, 0, &ss, &sslen, AF_INET6) == 0) {
+        NetBlockIPv6Netmask *netblock_ipv6;
 
-    netblock_ipv6 = new NetBlockIPv6Netmask();
-    netblock_ipv6->set_addr((struct sockaddr_in6 *) &ss);
-    return netblock_ipv6;
-  }
+        netblock_ipv6 = new NetBlockIPv6Netmask();
+        netblock_ipv6->set_addr((struct sockaddr_in6 *) &ss);
+        return netblock_ipv6;
+    }
 
-  return new NetBlockHostname(hostexp, af);
+    return new NetBlockHostname(hostexp, af);
 }
 
 /* Parses an expression such as 192.168.0.0/16, 10.1.0-5.1-254, or
    fe80::202:e3ff:fe14:1102/112 and returns a newly allocated NetBlock. The af
    parameter is AF_INET or AF_INET6. Returns NULL in case of error. */
 NetBlock *NetBlock::parse_expr(const char *target_expr, int af) {
-  NetBlock *netblock;
-  char *hostexp;
-  int bits;
+    NetBlock *netblock;
+    char *hostexp;
+    int bits;
 
-  hostexp = split_netmask(target_expr, &bits);
-  if (hostexp == NULL) {
-    error("Unable to split netmask from target expression: \"%s\"", target_expr);
-    goto bail;
-  }
+    hostexp = split_netmask(target_expr, &bits);
+    if (hostexp == NULL) {
+        error("Unable to split netmask from target expression: \"%s\"", target_expr);
+        goto bail;
+    }
 
-  if (af == AF_INET && bits > 32) {
-    error("Illegal netmask in \"%s\". Assuming /32 (one host)", target_expr);
-    bits = -1;
-  }
+    if (af == AF_INET && bits > 32) {
+        error("Illegal netmask in \"%s\". Assuming /32 (one host)", target_expr);
+        bits = -1;
+    }
 
-  netblock = parse_expr_without_netmask(hostexp, af);
-  if (netblock == NULL)
-    goto bail;
-  netblock->apply_netmask(bits);
+    netblock = parse_expr_without_netmask(hostexp, af);
+    if (netblock == NULL)
+        goto bail;
+    netblock->apply_netmask(bits);
 
-  free(hostexp);
-  return netblock;
+    free(hostexp);
+    return netblock;
 
 bail:
-  free(hostexp);
-  return NULL;
+    free(hostexp);
+    return NULL;
 }
 
 bool NetBlock::is_resolved_address(const struct sockaddr_storage *ss) const {
-  if (this->resolvedaddrs.empty())
-    return false;
-  return sockaddr_storage_equal(&*this->resolvedaddrs.begin(), ss);
+    if (this->resolvedaddrs.empty())
+        return false;
+    return sockaddr_storage_equal(& * this->resolvedaddrs.begin(), ss);
 }
 
 NetBlockIPv4Ranges::NetBlockIPv4Ranges() {
-  unsigned int i;
+    unsigned int i;
 
-  for (i = 0; i < 4; i++) {
-    memset(this->octets, 0, sizeof(this->octets));
-    this->counter[i] = 0;
-  }
+    for (i = 0; i < 4; i++) {
+        memset(this->octets, 0, sizeof (this->octets));
+        this->counter[i] = 0;
+    }
 }
 
 bool NetBlockIPv4Ranges::next(struct sockaddr_storage *ss, size_t *sslen) {
-  struct sockaddr_in *sin;
-  unsigned int i;
+    struct sockaddr_in *sin;
+    unsigned int i;
 
-  /* This first time this is called, the current values of this->counter
-     probably do not point to set bits (they point to 0.0.0.0). Find the first
-     set bit in each bitvector. If any overflow occurs, it means that there is
-     not bit set for one of the octets and therefore there are not addresses
-     overall. */
-  for (i = 0; i < 4; i++) {
-    while (this->counter[i] < 256 && !BIT_IS_SET(this->octets[i], this->counter[i]))
-      this->counter[i]++;
-    if (this->counter[i] >= 256)
-      return false;
-  }
+    /* This first time this is called, the current values of this->counter
+       probably do not point to set bits (they point to 0.0.0.0). Find the first
+       set bit in each bitvector. If any overflow occurs, it means that there is
+       not bit set for one of the octets and therefore there are not addresses
+       overall. */
+    for (i = 0; i < 4; i++) {
+        while (this->counter[i] < 256 && !BIT_IS_SET(this->octets[i], this->counter[i]))
+            this->counter[i]++;
+        if (this->counter[i] >= 256)
+            return false;
+    }
 
-  /* Assign the returned address based on current counters. */
-  memset(ss, 0, sizeof(*ss));
-  sin = (struct sockaddr_in *) ss;
-  sin->sin_family = AF_INET;
-  sin->sin_port = 0;
+    /* Assign the returned address based on current counters. */
+    memset(ss, 0, sizeof (*ss));
+    sin = (struct sockaddr_in *) ss;
+    sin->sin_family = AF_INET;
+    sin->sin_port = 0;
 #if HAVE_SOCKADDR_SA_LEN
-  sin->sin_len = sizeof(*sin);
+    sin->sin_len = sizeof (*sin);
 #endif
-  sin->sin_addr.s_addr = htonl((this->counter[0] << 24) | (this->counter[1] << 16) | (this->counter[2] << 8) | this->counter[3]);
-  *sslen = sizeof(*sin);
+    sin->sin_addr.s_addr = htonl((this->counter[0] << 24) | (this->counter[1] << 16) | (this->counter[2] << 8) | this->counter[3]);
+    *sslen = sizeof (*sin);
 
-  for (i = 0; i < 4; i++) {
-    bool carry;
+    for (i = 0; i < 4; i++) {
+        bool carry;
 
-    carry = false;
-    do {
-      this->counter[3 - i] = (this->counter[3 - i] + 1) % 256;
-      if (this->counter[3 - i] == 0)
-        carry = true;
-    } while (!BIT_IS_SET(this->octets[3 - i], this->counter[3 - i]));
-    if (!carry)
-      break;
-  }
-  if (i >= 4) {
-    /* We cycled all counters. Mark them invalid for the next call. */
-    this->counter[0] = 256;
-    this->counter[1] = 256;
-    this->counter[2] = 256;
-    this->counter[3] = 256;
-  }
+        carry = false;
+        do {
+            this->counter[3 - i] = (this->counter[3 - i] + 1) % 256;
+            if (this->counter[3 - i] == 0)
+                carry = true;
+        } while (!BIT_IS_SET(this->octets[3 - i], this->counter[3 - i]));
+        if (!carry)
+            break;
+    }
+    if (i >= 4) {
+        /* We cycled all counters. Mark them invalid for the next call. */
+        this->counter[0] = 256;
+        this->counter[1] = 256;
+        this->counter[2] = 256;
+        this->counter[3] = 256;
+    }
 
-  return true;
+    return true;
 }
 
 /* Expand a single-octet bit vector to include any additional addresses that
    result when mask is applied. */
 static void apply_ipv4_netmask_octet(octet_bitvector bits, uint8_t mask) {
-  unsigned int i, j;
-  uint32_t chunk_size;
+    unsigned int i, j;
+    uint32_t chunk_size;
 
-  /* Process the bit vector in chunks, first of size 1, then of size 2, up to
-     size 128. Check the next bit of the mask. If it is 1, do nothing.
-     Otherwise, pair up the chunks (first with the second, third with the
-     fourth, etc.). For each pair of chunks, set a bit in one chunk if it is
-     set in the other. chunk_size also serves as an index into the mask. */
-  for (chunk_size = 1; chunk_size < 256; chunk_size <<= 1) {
-    if ((mask & chunk_size) != 0)
-      continue;
-    for (i = 0; i < 256; i += chunk_size * 2) {
-      for (j = 0; j < chunk_size; j++) {
-        if (BIT_IS_SET(bits, i + j))
-          BIT_SET(bits, i + j + chunk_size);
-        else if (BIT_IS_SET(bits, i + j + chunk_size))
-          BIT_SET(bits, i + j);
-      }
+    /* Process the bit vector in chunks, first of size 1, then of size 2, up to
+       size 128. Check the next bit of the mask. If it is 1, do nothing.
+       Otherwise, pair up the chunks (first with the second, third with the
+       fourth, etc.). For each pair of chunks, set a bit in one chunk if it is
+       set in the other. chunk_size also serves as an index into the mask. */
+    for (chunk_size = 1; chunk_size < 256; chunk_size <<= 1) {
+        if ((mask & chunk_size) != 0)
+            continue;
+        for (i = 0; i < 256; i += chunk_size * 2) {
+            for (j = 0; j < chunk_size; j++) {
+                if (BIT_IS_SET(bits, i + j))
+                    BIT_SET(bits, i + j + chunk_size);
+                else if (BIT_IS_SET(bits, i + j + chunk_size))
+                    BIT_SET(bits, i + j);
+            }
+        }
     }
-  }
 }
 
 /* Expand IPv4 bit vectors to include any additional addresses that result when
    the given netmask is applied. The mask is in host byte order. */
 static void apply_ipv4_netmask(octet_bitvector octets[4], uint32_t mask) {
-  /* Apply the mask one octet at a time. It's done this way because ranges
-     span exactly one octet. */
-  apply_ipv4_netmask_octet(octets[0], (mask & 0xFF000000) >> 24);
-  apply_ipv4_netmask_octet(octets[1], (mask & 0x00FF0000) >> 16);
-  apply_ipv4_netmask_octet(octets[2], (mask & 0x0000FF00) >> 8);
-  apply_ipv4_netmask_octet(octets[3], (mask & 0x000000FF));
+    /* Apply the mask one octet at a time. It's done this way because ranges
+       span exactly one octet. */
+    apply_ipv4_netmask_octet(octets[0], (mask & 0xFF000000) >> 24);
+    apply_ipv4_netmask_octet(octets[1], (mask & 0x00FF0000) >> 16);
+    apply_ipv4_netmask_octet(octets[2], (mask & 0x0000FF00) >> 8);
+    apply_ipv4_netmask_octet(octets[3], (mask & 0x000000FF));
 }
 
 /* Expand IPv4 bit vectors to include any additional addresses that result from
    the application of a CIDR-style netmask with the given number of bits. If
    bits is negative it is taken to be 32. */
 void NetBlockIPv4Ranges::apply_netmask(int bits) {
-  uint32_t mask;
+    uint32_t mask;
 
-  if (bits > 32)
-    return;
-  if (bits < 0)
-    bits = 32;
+    if (bits > 32)
+        return;
+    if (bits < 0)
+        bits = 32;
 
-  if (bits == 0)
-    mask = 0x00000000;
-  else
-    mask = 0xFFFFFFFF << (32 - bits);
+    if (bits == 0)
+        mask = 0x00000000;
+    else
+        mask = 0xFFFFFFFF << (32 - bits);
 
-  apply_ipv4_netmask(this->octets, mask);
+    apply_ipv4_netmask(this->octets, mask);
 }
 
 static std::string bitvector_to_range_string(const octet_bitvector v) {
-  unsigned int i, j;
-  //std::ostringstream result;
+    unsigned int i, j;
+    std::string result = "";
+    //std::ostringstream result;
 
-  i = 0;
-  /*while (i < 256) {
-    while (i < 256 && !BIT_IS_SET(v, i))
-      i++;
-    if (i >= 256)
-      break;
-    j = i + 1;
-    while (j < 256 && BIT_IS_SET(v, j))
-      j++;
+    i = 0;
+    while (i < 256) {
+        while (i < 256 && !BIT_IS_SET(v, i))
+            i++;
+        if (i >= 256)
+            break;
+        j = i + 1;
+        while (j < 256 && BIT_IS_SET(v, j))
+            j++;
 
-    if (result.tellp() > 0)
-      result << ",";
-    if (i == j - 1)
-      result << i;
-    else if (i + 1 == j - 1)
-      result << i << "," << (j - 1);
-    else
-      result << i << "-" << (j - 1);
+        if (result.length() > 0)
+            result += ",";
+        if (i == j - 1)
+            result += i;
+        else if (i + 1 == j - 1)
+            result += i + "," + (j - 1);
+        else
+            result += i + "-" + (j - 1);
 
-    i = j;
-  }*/
+        i = j;
+    }
 
-  return NULL; //result.str();
+    return result; //result.str();
 }
 
 std::string NetBlockIPv4Ranges::str() const {
-//  std::ostringstream result;
+    std::string result ="";
+    //  std::ostringstream result;
 
-  /*result << bitvector_to_range_string(this->octets[0]);
-  result << ".";
-  result << bitvector_to_range_string(this->octets[1]);
-  result << ".";
-  result << bitvector_to_range_string(this->octets[2]);
-  result << ".";
-  result << bitvector_to_range_string(this->octets[3]);
-*/
-  return NULL; // result.str();
+    result += bitvector_to_range_string(this->octets[0]);
+    result += ".";
+    result += bitvector_to_range_string(this->octets[1]);
+    result += ".";
+    result += bitvector_to_range_string(this->octets[2]);
+    result += ".";
+    result += bitvector_to_range_string(this->octets[3]);
+
+    return result; // result.str();
 }
 
 void NetBlockIPv6Netmask::set_addr(const struct sockaddr_in6 *addr) {
-  this->exhausted = false;
-  this->addr = *addr;
-  this->start = this->addr.sin6_addr;
-  this->cur = this->addr.sin6_addr;
-  this->end = this->addr.sin6_addr;
+    this->exhausted = false;
+    this->addr = *addr;
+    this->start = this->addr.sin6_addr;
+    this->cur = this->addr.sin6_addr;
+    this->end = this->addr.sin6_addr;
 }
 
 /* Get the sin6_scope_id member of a sockaddr_in6, based on a device name. This
    is used to assign scope to all addresses that otherwise lack a scope id when
    the -e option is used. */
 static int get_scope_id(const char *devname) {
-  struct interface_info *ii;
+    struct interface_info *ii;
 
-  if (devname == NULL || devname[0] == '\0')
-    return 0;
-  ii = getInterfaceByName(devname, AF_INET6);
-  if (ii != NULL)
-    return ii->ifindex;
-  else
-    return 0;
+    if (devname == NULL || devname[0] == '\0')
+        return 0;
+    ii = getInterfaceByName(devname, AF_INET6);
+    if (ii != NULL)
+        return ii->ifindex;
+    else
+        return 0;
 }
 
 static bool ipv6_equal(const struct in6_addr *a, const struct in6_addr *b) {
-  return memcmp(a->s6_addr, b->s6_addr, 16) == 0;
+    return memcmp(a->s6_addr, b->s6_addr, 16) == 0;
 }
 
 bool NetBlockIPv6Netmask::next(struct sockaddr_storage *ss, size_t *sslen) {
-  struct sockaddr_in6 *sin6;
+    struct sockaddr_in6 *sin6;
 
-  if (this->exhausted)
-    return false;
+    if (this->exhausted)
+        return false;
 
-  memset(ss, 0, sizeof(*ss));
-  sin6 = (struct sockaddr_in6 *) ss;
-  sin6->sin6_family = AF_INET6;
+    memset(ss, 0, sizeof (*ss));
+    sin6 = (struct sockaddr_in6 *) ss;
+    sin6->sin6_family = AF_INET6;
 #ifdef SIN_LEN
-  sin6->sin6_len = sizeof(*sin6);
+    sin6->sin6_len = sizeof (*sin6);
 #endif
-  *sslen = sizeof(*sin6);
+    *sslen = sizeof (*sin6);
 
-  if (this->addr.sin6_scope_id != 0)
-    sin6->sin6_scope_id = this->addr.sin6_scope_id;
-  else
-    sin6->sin6_scope_id = get_scope_id(o.device);
+    if (this->addr.sin6_scope_id != 0)
+        sin6->sin6_scope_id = this->addr.sin6_scope_id;
+    else
+        sin6->sin6_scope_id = get_scope_id(o.device);
 
-  sin6->sin6_addr = this->cur;
+    sin6->sin6_addr = this->cur;
 
-  if (ipv6_equal(&this->cur, &this->end))
-    exhausted = true;
+    if (ipv6_equal(&this->cur, &this->end))
+        exhausted = true;
 
-  /* Increment current address. */
-  for (int i = 15; i >= 0; i--) {
-    this->cur.s6_addr[i]++;
-    if (this->cur.s6_addr[i] > 0)
-      break;
-  }
+    /* Increment current address. */
+    for (int i = 15; i >= 0; i--) {
+        this->cur.s6_addr[i]++;
+        if (this->cur.s6_addr[i] > 0)
+            break;
+    }
 
-  return true;
+    return true;
 }
 
 /* Fill in an in6_addr with a CIDR-style netmask with the given number of bits. */
 static void make_ipv6_netmask(struct in6_addr *mask, int bits) {
-  unsigned int i;
+    unsigned int i;
 
-  memset(mask, 0, sizeof(*mask));
+    memset(mask, 0, sizeof (*mask));
 
-  if (bits < 0)
-    bits = 0;
-  else if (bits > 128)
-    bits = 128;
+    if (bits < 0)
+        bits = 0;
+    else if (bits > 128)
+        bits = 128;
 
-  if (bits == 0)
-    return;
+    if (bits == 0)
+        return;
 
-  i = 0;
-  /* 0 < bits <= 128, so this loop goes at most 15 times. */
-  for ( ; bits > 8; bits -= 8)
-    mask->s6_addr[i++] = 0xFF;
-  mask->s6_addr[i] = 0xFF << (8 - bits);
+    i = 0;
+    /* 0 < bits <= 128, so this loop goes at most 15 times. */
+    for (; bits > 8; bits -= 8)
+        mask->s6_addr[i++] = 0xFF;
+    mask->s6_addr[i] = 0xFF << (8 - bits);
 }
 
 /* a = (a & mask) | (b & ~mask) */
 static void ipv6_or_mask(struct in6_addr *a, const struct in6_addr *mask, const struct in6_addr *b) {
-  unsigned int i;
+    unsigned int i;
 
-  for (i = 0; i < sizeof(a->s6_addr) / sizeof(*a->s6_addr); i++)
-    a->s6_addr[i] = (a->s6_addr[i] & mask->s6_addr[i]) | (b->s6_addr[i] & ~mask->s6_addr[i]);
+    for (i = 0; i < sizeof (a->s6_addr) / sizeof (*a->s6_addr); i++)
+        a->s6_addr[i] = (a->s6_addr[i] & mask->s6_addr[i]) | (b->s6_addr[i] & ~mask->s6_addr[i]);
 }
 
 void NetBlockIPv6Netmask::apply_netmask(int bits) {
-  const struct in6_addr zeros = { { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} } };
-  const struct in6_addr ones = { { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff} } };
-  struct in6_addr mask;
+    const struct in6_addr zeros = {
+        {
+            { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+        }
+    };
+    const struct in6_addr ones = {
+        {
+            { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+        }
+    };
+    struct in6_addr mask;
 
-  if (bits > 128)
-    return;
-  if (bits < 0)
-    bits = 128;
+    if (bits > 128)
+        return;
+    if (bits < 0)
+        bits = 128;
 
-  this->exhausted = false;
-  make_ipv6_netmask(&mask, bits);
-  ipv6_or_mask(&this->start, &mask, &zeros);
-  ipv6_or_mask(&this->end, &mask, &ones);
-  this->cur = this->start;
+    this->exhausted = false;
+    make_ipv6_netmask(&mask, bits);
+    ipv6_or_mask(&this->start, &mask, &zeros);
+    ipv6_or_mask(&this->end, &mask, &ones);
+    this->cur = this->start;
 }
 
 /* a = a & ~b */
 static void recover_ipv6_netmask(struct in6_addr *a, const struct in6_addr *b) {
-  unsigned int i;
+    unsigned int i;
 
-  for (i = 0; i < sizeof(a->s6_addr) / sizeof(*a->s6_addr); i++)
-    a->s6_addr[i] = a->s6_addr[i] & ~b->s6_addr[i];
+    for (i = 0; i < sizeof (a->s6_addr) / sizeof (*a->s6_addr); i++)
+        a->s6_addr[i] = a->s6_addr[i] & ~b->s6_addr[i];
 }
 
 static unsigned int count_ipv6_bits(const struct in6_addr *a) {
-  unsigned int i, n;
-  unsigned char mask;
+    unsigned int i, n;
+    unsigned char mask;
 
-  n = 0;
-  for (i = 0; i < sizeof(a->s6_addr) / sizeof(*a->s6_addr); i++) {
-    for (mask = 0x80; mask != 0; mask >>= 1) {
-      if ((a->s6_addr[i] & mask) != 0)
-        n++;
+    n = 0;
+    for (i = 0; i < sizeof (a->s6_addr) / sizeof (*a->s6_addr); i++) {
+        for (mask = 0x80; mask != 0; mask >>= 1) {
+            if ((a->s6_addr[i] & mask) != 0)
+                n++;
+        }
     }
-  }
 
-  return n;
+    return n;
 }
 
 std::string NetBlockIPv6Netmask::str() const {
-  //std::ostringstream result;
-  unsigned int bits;
-  struct in6_addr a;
+    //std::ostringstream result;
+    std::string result;
+    unsigned int bits;
+    struct in6_addr a;
 
-  a = this->start;
-  recover_ipv6_netmask(&a, &this->end);
-  bits = count_ipv6_bits(&a);
+    a = this->start;
+    recover_ipv6_netmask(&a, &this->end);
+    bits = count_ipv6_bits(&a);
 
-  /// result << inet_ntop_ez((struct sockaddr_storage *) &this->addr, sizeof(this->addr)) << "/" << bits;
+    result = inet_ntop_ez((struct sockaddr_storage *) & this->addr, sizeof (this->addr)) << "/" << bits;
 
-  return NULL; // result.str();
+    return result; // result.str();
 }
 
 NetBlock *NetBlockHostname::resolve() const {
-  struct addrinfo *addrs, *addr;
-  std::list<struct sockaddr_storage> resolvedaddrs;
-  NetBlock *netblock;
-  struct sockaddr_storage ss;
-  size_t sslen;
+    struct addrinfo *addrs, *addr;
+    std::list<struct sockaddr_storage> resolvedaddrs;
+    NetBlock *netblock;
+    struct sockaddr_storage ss;
+    size_t sslen;
 
-  addrs = resolve_all(this->hostname.c_str(), this->af);
-  for (addr = addrs; addr != NULL; addr = addr->ai_next) {
-    if (addr->ai_addrlen < sizeof(ss)) {
-      memcpy(&ss, addr->ai_addr, addr->ai_addrlen);
-      resolvedaddrs.push_back(ss);
+    addrs = resolve_all(this->hostname.c_str(), this->af);
+    for (addr = addrs; addr != NULL; addr = addr->ai_next) {
+        if (addr->ai_addrlen < sizeof (ss)) {
+            memcpy(&ss, addr->ai_addr, addr->ai_addrlen);
+            resolvedaddrs.push_back(ss);
+        }
     }
-  }
-  if (addrs != NULL)
-    freeaddrinfo(addrs);
+    if (addrs != NULL)
+        freeaddrinfo(addrs);
 
-  if (resolvedaddrs.empty())
-    return NULL;
+    if (resolvedaddrs.empty())
+        return NULL;
 
-  ss = *resolvedaddrs.begin();
-  sslen = sizeof(ss);
+    ss = *resolvedaddrs.begin();
+    sslen = sizeof (ss);
 
-  if (resolvedaddrs.size() > 1 && o.verbose > 1) {
-    error("Warning: Hostname %s resolves to %lu IPs. Using %s.", this->hostname.c_str(),
-      (unsigned long) resolvedaddrs.size(), inet_ntop_ez(&ss, sslen));
-  }
+    if (resolvedaddrs.size() > 1 && o.verbose > 1) {
+        error("Warning: Hostname %s resolves to %lu IPs. Using %s.", this->hostname.c_str(),
+                (unsigned long) resolvedaddrs.size(), inet_ntop_ez(&ss, sslen));
+    }
 
-  netblock = NULL;
-  if (ss.ss_family == AF_INET) {
-    NetBlockIPv4Ranges *netblock_ranges;
-    uint32_t ip;
+    netblock = NULL;
+    if (ss.ss_family == AF_INET) {
+        NetBlockIPv4Ranges *netblock_ranges;
+        uint32_t ip;
 
-    ip = ntohl(((struct sockaddr_in *) &ss)->sin_addr.s_addr);
-    netblock_ranges = new NetBlockIPv4Ranges();
-    BIT_SET(netblock_ranges->octets[0], (ip & 0xFF000000) >> 24);
-    BIT_SET(netblock_ranges->octets[1], (ip & 0x00FF0000) >> 16);
-    BIT_SET(netblock_ranges->octets[2], (ip & 0x0000FF00) >> 8);
-    BIT_SET(netblock_ranges->octets[3], (ip & 0x000000FF));
-    netblock = netblock_ranges;
-  } else if (ss.ss_family == AF_INET6) {
-    NetBlockIPv6Netmask *netblock_ipv6;
+        ip = ntohl(((struct sockaddr_in *) &ss)->sin_addr.s_addr);
+        netblock_ranges = new NetBlockIPv4Ranges();
+        BIT_SET(netblock_ranges->octets[0], (ip & 0xFF000000) >> 24);
+        BIT_SET(netblock_ranges->octets[1], (ip & 0x00FF0000) >> 16);
+        BIT_SET(netblock_ranges->octets[2], (ip & 0x0000FF00) >> 8);
+        BIT_SET(netblock_ranges->octets[3], (ip & 0x000000FF));
+        netblock = netblock_ranges;
+    } else if (ss.ss_family == AF_INET6) {
+        NetBlockIPv6Netmask *netblock_ipv6;
 
-    netblock_ipv6 = new NetBlockIPv6Netmask();
-    netblock_ipv6->set_addr((struct sockaddr_in6 *) &ss);
-    netblock = netblock_ipv6;
-  }
+        netblock_ipv6 = new NetBlockIPv6Netmask();
+        netblock_ipv6->set_addr((struct sockaddr_in6 *) &ss);
+        netblock = netblock_ipv6;
+    }
 
-  if (netblock == NULL)
-    return NULL;
+    if (netblock == NULL)
+        return NULL;
 
-  netblock->hostname = this->hostname;
-  netblock->resolvedaddrs = resolvedaddrs;
-  netblock->apply_netmask(this->bits);
+    netblock->hostname = this->hostname;
+    netblock->resolvedaddrs = resolvedaddrs;
+    netblock->apply_netmask(this->bits);
 
-  return netblock;
+    return netblock;
 }
 
 NetBlockHostname::NetBlockHostname(const char *hostname, int af) {
-  this->hostname = hostname;
-  this->af = af;
-  this->bits = -1;
+    this->hostname = hostname;
+    this->af = af;
+    this->bits = -1;
 }
 
 bool NetBlockHostname::next(struct sockaddr_storage *ss, size_t *sslen) {
-  assert(false);
-  return false;
+    assert(false);
+    return false;
 }
 
 void NetBlockHostname::apply_netmask(int bits) {
-  this->bits = bits;
+    this->bits = bits;
 }
 
 std::string NetBlockHostname::str() const {
-// std::ostringstream result;
+    // std::ostringstream result;
+    std::string result;
 
- // result << this->hostname;
-  //if (this->bits >= 0)
-   // result << "/" << this->bits;
+    result = this->hostname;
+    if (this->bits >= 0)
+        result += "/" + this->bits;
 
-  return NULL;
+    return result;
 }
 
 /* debug level for the adding target is: 3 */
-NewTargets *NewTargets::get (void) {
-  if (new_targets)
+NewTargets *NewTargets::get(void) {
+    if (new_targets)
+        return new_targets;
+    new_targets = new NewTargets();
     return new_targets;
-  new_targets = new NewTargets();
-  return new_targets;
 }
 
-NewTargets::NewTargets (void) {
-  Initialize();
+NewTargets::NewTargets(void) {
+    Initialize();
 }
 
-void NewTargets::Initialize (void) {
-  history.clear();
-  while (!queue.empty())
-    queue.pop();
+void NewTargets::Initialize(void) {
+    history.clear();
+    while (!queue.empty())
+        queue.pop();
 }
 
 /* This private method is used to push new targets to the
  * queue. It returns the number of targets in the queue. */
-unsigned long NewTargets::push (const char *target) {
-  std::pair<std::set<std::string>::iterator, bool> pair_iter;
-  std::string tg(target);
+unsigned long NewTargets::push(const char *target) {
+    std::pair < std::set<std::string>::iterator, bool> pair_iter;
+    std::string tg(target);
 
-  if (tg.length() > 0) {
-    /* save targets in the scanned history here (NSE side). */
-    pair_iter = history.insert(tg);
+    if (tg.length() > 0) {
+        /* save targets in the scanned history here (NSE side). */
+        pair_iter = history.insert(tg);
 
-    /* A new target */
-    if (pair_iter.second == true) {
-      /* push target onto the queue for future scans */
-      queue.push(tg);
+        /* A new target */
+        if (pair_iter.second == true) {
+            /* push target onto the queue for future scans */
+            queue.push(tg);
 
-      if (o.debugging > 2)
-        log_write(LOG_PLAIN, "New Targets: target %s pushed onto the queue.\n", tg.c_str());
-    } else {
-      if (o.debugging > 2)
-        log_write(LOG_PLAIN, "New Targets: target %s is already in the queue.\n", tg.c_str());
-      /* Return 1 when the target is already in the history cache,
-       * this will prevent returning 0 when the target queue is
-       * empty since no target was added. */
-      return 1;
+            if (o.debugging > 2)
+                log_write(LOG_PLAIN, "New Targets: target %s pushed onto the queue.\n", tg.c_str());
+        } else {
+            if (o.debugging > 2)
+                log_write(LOG_PLAIN, "New Targets: target %s is already in the queue.\n", tg.c_str());
+            /* Return 1 when the target is already in the history cache,
+             * this will prevent returning 0 when the target queue is
+             * empty since no target was added. */
+            return 1;
+        }
     }
-  }
 
-  return queue.size();
+    return queue.size();
 }
 
 /* Reads a target from the queue and return it to be pushed
  * onto Nmap scan queue */
-std::string NewTargets::read (void) {
-  std::string str;
+std::string NewTargets::read(void) {
+    std::string str;
 
-  /* check to see it there are targets in the queue */
-  if (!new_targets->queue.empty()) {
-    str = new_targets->queue.front();
-    new_targets->queue.pop();
-  }
+    /* check to see it there are targets in the queue */
+    if (!new_targets->queue.empty()) {
+        str = new_targets->queue.front();
+        new_targets->queue.pop();
+    }
 
-  return str;
+    return str;
 }
 
-void NewTargets::clear (void) {
-  new_targets->history.clear();
+void NewTargets::clear(void) {
+    new_targets->history.clear();
 }
 
-unsigned long NewTargets::get_number (void) {
-  return new_targets->history.size();
+unsigned long NewTargets::get_number(void) {
+    return new_targets->history.size();
 }
 
-unsigned long NewTargets::get_scanned (void) {
-  return new_targets->history.size() - new_targets->queue.size();
+unsigned long NewTargets::get_scanned(void) {
+    return new_targets->history.size() - new_targets->queue.size();
 }
 
-unsigned long NewTargets::get_queued (void) {
-  return new_targets->queue.size();
+unsigned long NewTargets::get_queued(void) {
+    return new_targets->queue.size();
 }
 
 /* This is the function that is used by nse_nmaplib.cc to add
  * new targets.
  * Returns the number of targets in the queue on success, or 0 on
  * failures or when the queue is empty. */
-unsigned long NewTargets::insert (const char *target) {
-  if (*target) {
-    if (new_targets == NULL) {
-      error("ERROR: to add targets run with -sC or --script options.");
-      return 0;
+unsigned long NewTargets::insert(const char *target) {
+    if (*target) {
+        if (new_targets == NULL) {
+            error("ERROR: to add targets run with -sC or --script options.");
+            return 0;
+        }
+        if (o.current_scantype == SCRIPT_POST_SCAN) {
+            error("ERROR: adding targets is disabled in the Post-scanning phase.");
+            return 0;
+        }
+        if (strlen(target) >= 1024) {
+            error("ERROR: new target is too long (>= 1024), failed to add it.");
+            return 0;
+        }
     }
-    if (o.current_scantype == SCRIPT_POST_SCAN) {
-      error("ERROR: adding targets is disabled in the Post-scanning phase.");
-      return 0;
-    }
-    if (strlen(target) >= 1024) {
-      error("ERROR: new target is too long (>= 1024), failed to add it.");
-      return 0;
-    }
-  }
 
-  return new_targets->push(target);
+    return new_targets->push(target);
 }
