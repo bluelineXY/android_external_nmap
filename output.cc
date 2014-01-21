@@ -1766,7 +1766,7 @@ static std::string get_scrubbed_buffer(const FPResponse *resp) {
     result += "HEX:";
     for (i = 0; i < resp->len; i++) {
         if (resp->buf[i] == buf1[i] && resp->buf[i] == buf2[i]) {
-            result.width(2);
+            // result.width(2);
             result += (unsigned int) resp->buf[i];
         } else {
             result += "XX";
