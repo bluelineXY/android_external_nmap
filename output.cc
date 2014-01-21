@@ -1818,7 +1818,7 @@ const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
   result += FPR->flow_label;
   result += ")\n";
 
-  output = result.str();
+  output = result;
   if (wrapit) {
     output = wrap(output);
   }
