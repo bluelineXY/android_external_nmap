@@ -1682,8 +1682,12 @@ static std::string run_length_encode(const std::string &s) {
         reps = (q - p) / 2;
         if (reps < 3)
             result += std::string(p, q);
-        else
-            result += std::string(p, 2) + "{" + reps + "}";
+        else {
+            result += std::string(p, 2);
+            result += "{";
+            result += reps;
+            result += "}";
+        }
         p = q;
     }
     if (*p != '\0')
