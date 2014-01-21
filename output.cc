@@ -1823,7 +1823,8 @@ const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
     result += "EXTRA(";
     result += "FL=";
     // result.fill('0');
-    result += std::hex;
+//    result += std::hex;
+    result += "HEX: ";
     // result.width(5);
     result += FPR->flow_label;
     result += ")\n";
