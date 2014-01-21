@@ -1825,7 +1825,7 @@ const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
 
   Strncpy(str, output.c_str(), sizeof(str));
 
-  return result; // str;
+  return str; // str;
 }
 
 static void write_merged_fpr(const FingerPrintResults *FPR,
