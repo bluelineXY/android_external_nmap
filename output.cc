@@ -1761,7 +1761,9 @@ static std::string get_scrubbed_buffer(const FPResponse *resp) {
     assert(resp->len == (unsigned int) len2);
 
     result = '0';
-    result += std::hex;
+    // result += std::hex;
+    //FIXME: HEX printout 
+    result += "HEX:";
     for (i = 0; i < resp->len; i++) {
         if (resp->buf[i] == buf1[i] && resp->buf[i] == buf2[i]) {
             result.width(2);
@@ -1824,6 +1826,7 @@ const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
     result += "FL=";
     // result.fill('0');
 //    result += std::hex;
+    //FIXME: BAD  implementation -> use printf or so ...
     result += "HEX: ";
     // result.width(5);
     result += FPR->flow_label;
