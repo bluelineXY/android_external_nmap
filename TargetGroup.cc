@@ -608,8 +608,9 @@ std::string NetBlockIPv6Netmask::str() const {
     recover_ipv6_netmask(&a, &this->end);
     bits = count_ipv6_bits(&a);
 
-    result = inet_ntop_ez((struct sockaddr_storage *) & this->addr, sizeof (this->addr)) << "/" << bits;
-
+    result = inet_ntop_ez((struct sockaddr_storage *) & this->addr, sizeof (this->addr));
+    result += "/";
+    result += bits;
     return result; // result.str();
 }
 
