@@ -1788,7 +1788,8 @@ const char *FingerPrintResultsIPv6::merge_fpr(const Target *currenths,
     currenths->distance, currenths->distance_calculation_method,
     currenths->MACAddress(), this->osscan_opentcpport,
     this->osscan_closedtcpport, this->osscan_closedudpport);
-  result = str + "\n";
+  result = str; 
+  result +=  "\n";
 
   FPR = (FingerPrintResultsIPv6 *) currenths->FPR;
   assert(FPR->begin_time.tv_sec != 0);
